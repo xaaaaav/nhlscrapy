@@ -14,7 +14,6 @@ import requests
 class NHLScraper():
 
     def __init__(self):
-
         self.BASE_URL = "https://statsapi.web.nhl.com"
         self.ROSTER_URL = self.BASE_URL + "/api/v1/teams?expand=team.roster&season="
         self.player_list = StringIO()
@@ -135,7 +134,6 @@ class NHLScraper():
         return flattened
 
 
-
 class BeforeNHLRecordedData(Exception):
   pass
 
@@ -147,8 +145,3 @@ class NHLDataNonExistent(Exception):
 if __name__ == "__main__":
     nhl = NHLScraper()
     nhl.get_game_data(start_year=2017)
-
-
-#get_player_list(end_year=2018)
-#cleanup_playerlist()
-#get_player_data()
