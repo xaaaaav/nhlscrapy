@@ -7,3 +7,4 @@ Pipfile
 Pipfile.lock
 nhlscrapy/tests/.DS_Store
 nhlscrapy/.DS_Store
+nhlscrapy/tests/__pycache__/
