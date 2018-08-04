@@ -1,2 +1,9 @@
 .DS_Store
-nhlpy/__pycache__/
+nhlscrapy/__pycache__/
+.pytest_cache
+.git/
+.python-version
+Pipfile
+Pipfile.lock
+nhlscrapy/tests/.DS_Store
+nhlscrapy/.DS_Store
