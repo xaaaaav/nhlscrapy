@@ -4,6 +4,8 @@ from gzip import GzipFile
 
 import boto3
 
+s3 = boto3.client('s3')
+
 def _get_start_end_date():
     month = datetime.now().month
     if month >= 9:
@@ -59,7 +61,6 @@ def _write_to_disk(directory, filename, data, location):
         gzfile.write(json.dumps(data).encode("utf-8"))
 
 def _write_to_s3(bucket, path, filename, data):
-    s3 = boto3.client("s3")
     gz_body = BytesIO()
     gz = GzipFile(None, 'wb', 9, gz_body)
     gz.write(json.dumps(data).encode('utf-8'))
