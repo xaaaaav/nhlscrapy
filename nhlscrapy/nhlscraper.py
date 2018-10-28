@@ -44,7 +44,7 @@ class NHLScraper():
     def get_game_data(self, start_date="2017-09-01", end_date="2018-07-01", team_list=None):
         self.start_game_date = datetime.strptime(start_date, "%Y-%m-%d")
         self.end_game_date = datetime.strptime(end_date, "%Y-%m-%d")
-        self.teas = team_list
+        self.teams = team_list
         if team_list:
             subset = {}
             for team in team_list:
