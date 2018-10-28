@@ -44,7 +44,7 @@ class NHLScraper():
     def get_game_data(self, start_date="2017-09-01", end_date="2018-07-01", team_list=None):
         self.start_game_date = datetime.strptime(start_date, "%Y-%m-%d")
         self.end_game_date = datetime.strptime(end_date, "%Y-%m-%d")
-        self.team = team
+        self.teas = team_list
         if team_list:
             subset = {}
             for team in team_list:
@@ -147,7 +147,7 @@ class NHLScraper():
 
     def _pull_game_data(self, date):
 
-        current_date = datetime.datetime.strptime(date, "%Y-%m-%d")
+        current_date = datetime.strptime(date, "%Y-%m-%d")
 
         if self.start_game_date <= current_date <= self.end_game_date:
             for link in self.game_dict[date]["api.link"]:
@@ -162,8 +162,8 @@ class NHLScraper():
                 directory = "./game_data/" + date + "/"
                 filename = away + "vs" + home + ".json"
 
-                if self.team:
-                    if self.team == away or self.team == home:
+                if self.teams:
+                    if away in self.teams or home in self.teams:
                         if self.location == "disk":
                             _write_to_disk(directory, filename, game)
                         elif self.location == "s3":
