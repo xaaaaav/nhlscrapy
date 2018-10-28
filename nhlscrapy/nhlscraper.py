@@ -42,8 +42,8 @@ class NHLScraper():
             ThreadPool(40).map(self._pull_player_data, self.player_dict)
 
     def get_game_data(self, start_date="2017-09-01", end_date="2018-07-01", team_list=None):
-        self.start_game_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-        self.end_game_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        self.start_game_date = datetime.strptime(start_date, "%Y-%m-%d")
+        self.end_game_date = datetime.strptime(end_date, "%Y-%m-%d")
         self.team = team
         if team_list:
             subset = {}
