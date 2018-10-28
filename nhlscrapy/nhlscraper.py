@@ -1,18 +1,19 @@
+from datetime import datetime
 from multiprocessing.pool import ThreadPool
 from time import sleep, time as timer
-import csv 
-import datetime
-import gzip
 import json
 import os
 import re
 
 import requests
 
+from nhlscrapy import _generate_years, _flatten_json, _validate_years, _get_start_end_date, _write_to_disk
+
 
 class NHLScraper():
 
-    def __init__(self):
+    def __init__(self, location, bucket=None):
+        START_YEAR = 1917
         self.BASE_URL = "https://statsapi.web.nhl.com"
         self.ROSTER_URL = self.BASE_URL + "/api/v1/teams?expand=team.roster&season="
         self.player_dict = {}
@@ -21,8 +22,14 @@ class NHLScraper():
         self.draft_dict = {}
         self.stat_types = self._pull_player_stat_type()
         self.standing_types = self._pull_standing_type()
-        ThreadPool(40).map(self._pull_player_list, iterable=(NHLScraper._generate_years(1917, 2018)))
-        ThreadPool(40).map(self._pull_game_list, iterable=(NHLScraper._generate_years(1917, 2018)))
+        self.location = location
+        self.bucket = bucket
+        end_year = datetime.now().year
+        if datetime.now().month >= 10:
+            end_year += 1
+
+        ThreadPool(40).map(self._pull_player_list, iterable=(_generate_years(START_YEAR, end_year)))
+        ThreadPool(40).map(self._pull_game_list, iterable=(_generate_years(START_YEAR, end_year)))
 
     def get_player_data(self, player_list=None, stat_type="gameLog"):
         self.stat_type = stat_type
@@ -52,13 +59,16 @@ class NHLScraper():
 
         directory = "./awards/"
         filename = "awards.json.gz"
-        NHLScraper._write_to_disk(directory, filename, awards)
+        if self.location == "disk":
+            NHLScraper._write_to_disk(directory, filename, awards)
+        elif self.location == "s3":
+            NHLScraper._write_to_s3(self.bucket, directory, filename, awards)
 
     def get_draft_data(self, year=None):
         if year:
             self._pull_draft_data(year)
         else:
-            ThreadPool(40).map(self._pull_draft_data, iterable=(NHLScraper._generate_years(1995, 2018)))
+            ThreadPool(40).map(self._pull_draft_data, iterable=(_generate_years(1995, 2018)))
 
     def _pull_draft_data(self, year):
         draft_year = year[:4]
@@ -69,13 +79,16 @@ class NHLScraper():
 
         directory = "./draft_data/"
         filename = draft_year + "_draft.json.gz"
-        NHLScraper._write_to_disk(directory, filename, draft_data)
+        if self.location == "disk":
+            NHLScraper._write_to_disk(directory, filename, draft_data)
+        elif self.location == "s3":
+            NHLScraper._write_to_s3(self.bucket, directory, filename, draft_data)
 
     def _pull_player_list(self, year):
         start_year = int(year[:4])
         end_year = int(year[4:])
 
-        NHLScraper._validate_years(start_year, end_year)
+        _validate_years(start_year, end_year)
         
         r = requests.get(self.ROSTER_URL + year)
         data = json.loads(r.text)
@@ -83,7 +96,7 @@ class NHLScraper():
         for team in data["teams"]:
             try:
                 for player in team["roster"]["roster"]:
-                    flattened_data = self._flatten_json(player)
+                    flattened_data = _flatten_json(player)
                     if flattened_data.get("person.fullName") not in self.player_dict:
                         self.player_dict[flattened_data.get("person.fullName")] = {"api.link": flattened_data.get("person.link"), "year": [year]}
                     else:
@@ -101,7 +114,7 @@ class NHLScraper():
 
         for date in games_json["dates"]:
             for game in date["games"]:
-                flattened_data = self._flatten_json(game)
+                flattened_data = _flatten_json(game)
                 if date["date"] not in self.game_dict:
                     self.game_dict[date["date"]] = {"api.link": [flattened_data.get("link")]}
                 else:
@@ -127,7 +140,10 @@ class NHLScraper():
             directory = "./player_gamelog_" + self.stat_type + "/" + position + "/" + name + "/"
             filename = year + ".json.gz"
 
-            NHLScraper._write_to_disk(directory, filename, player_info)
+            if self.location == "disk":
+                NHLScraper._write_to_disk(directory, filename, player_info)
+            elif self.location == "s3":
+                NHLScraper._write_to_s3(self.bucket, directory, filename, player_info)
 
     def _pull_game_data(self, date):
 
@@ -144,20 +160,19 @@ class NHLScraper():
                 away = game["gameData"]["teams"]["away"]["abbreviation"]
                 home = game["gameData"]["teams"]["home"]["abbreviation"]
                 directory = "./game_data/" + date + "/"
-                filename = away + "vs" + home + ".json.gz"
+                filename = away + "vs" + home + ".json"
 
                 if self.team:
                     if self.team == away or self.team == home:
-                        NHLScraper._write_to_disk(directory, filename, game)
+                        if self.location == "disk":
+                            NHLScraper._write_to_disk(directory, filename, game)
+                        elif self.location == "s3":
+                            NHLScraper._write_to_s3(self.bucket, directory, filename, game)
                 else:
-                    NHLScraper._write_to_disk(directory, filename, game)
-               
-    @staticmethod
-    def _write_to_disk(directory, filename, data):
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        with gzip.GzipFile(directory + filename, "w") as gzfile:
-            gzfile.write(json.dumps(data).encode("utf-8"))
+                    if self.location == "disk":
+                        NHLScraper._write_to_disk(directory, filename, game)
+                    elif self.location == "s3":
+                        NHLScraper._write_to_s3(self.bucket, directory, filename, game)
 
     def _pull_player_stat_type(self):
         r = requests.get(self.BASE_URL + "/api/v1/statTypes")
@@ -176,42 +191,3 @@ class NHLScraper():
         for dic in stat_types:
             types.append(dic["name"])
         return types
-
-    @staticmethod
-    def _generate_years(start_year, end_year):
-        year1 = start_year
-        year2 = start_year + 1
-
-        while year2 <= end_year:
-            season = str(year1) + str(year2)
-            yield season
-            year1 += 1
-            year2 += 1
-
-    @staticmethod
-    def _flatten_json(blob, delim="."):
-        flattened = {}
-
-        for i in blob.keys():
-            if isinstance(blob[i], dict):
-                get = NHLScraper._flatten_json(blob[i])
-                for j in get.keys():
-                    flattened[ i + delim + j ] = get[j]
-            else:
-                flattened[i] = blob[i]
-
-        return flattened
-
-    @staticmethod
-    def _validate_years(start_year, end_year):
-        if start_year < 1917 or end_year < 1918:
-            raise ValueError("Date is before the NHL started recording data.")
-
-        if end_year > datetime.datetime.now().year or start_year >= datetime.datetime.now().year:
-            raise ValueError("NHL data not yet recorded.")
-
-
-if __name__ == "__main__":
-    nhl = NHLScraper()
-    nhl.get_draft_data("1995")
-    #print(nhl.standing_types)

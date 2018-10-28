@@ -8,3 +8,9 @@ Pipfile.lock
 nhlscrapy/tests/.DS_Store
 nhlscrapy/.DS_Store
 nhlscrapy/tests/__pycache__/
+.coverage
+.coveralls.yml
+build/
+dist/
+nhlscrapy.egg-info/
+test.py
