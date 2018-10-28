@@ -52,14 +52,12 @@ def _validate_draft_year(year):
 	if year < 1995 or year > datetime.now().year:
 		raise ValueError("No NHL draft data available")
 
-@staticmethod
 def _write_to_disk(directory, filename, data, location):
     if not os.path.exists(directory):
         os.makedirs(directory)
     with GzipFile(directory + filename, "w") as gzfile:
         gzfile.write(json.dumps(data).encode("utf-8"))
 
-@staticmethod
 def _write_to_s3(bucket, path, filename, data):
     s3 = boto3.client("s3")
     gz_body = BytesIO()
