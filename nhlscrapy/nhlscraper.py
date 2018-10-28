@@ -60,9 +60,9 @@ class NHLScraper():
         directory = "./awards/"
         filename = "awards.json.gz"
         if self.location == "disk":
-            NHLScraper._write_to_disk(directory, filename, awards)
+            _write_to_disk(directory, filename, awards)
         elif self.location == "s3":
-            NHLScraper._write_to_s3(self.bucket, directory, filename, awards)
+            _write_to_s3(self.bucket, directory, filename, awards)
 
     def get_draft_data(self, year=None):
         if year:
@@ -80,9 +80,9 @@ class NHLScraper():
         directory = "./draft_data/"
         filename = draft_year + "_draft.json.gz"
         if self.location == "disk":
-            NHLScraper._write_to_disk(directory, filename, draft_data)
+            _write_to_disk(directory, filename, draft_data)
         elif self.location == "s3":
-            NHLScraper._write_to_s3(self.bucket, directory, filename, draft_data)
+            _write_to_s3(self.bucket, directory, filename, draft_data)
 
     def _pull_player_list(self, year):
         start_year = int(year[:4])
@@ -141,9 +141,9 @@ class NHLScraper():
             filename = year + ".json.gz"
 
             if self.location == "disk":
-                NHLScraper._write_to_disk(directory, filename, player_info)
+                _write_to_disk(directory, filename, player_info)
             elif self.location == "s3":
-                NHLScraper._write_to_s3(self.bucket, directory, filename, player_info)
+                _write_to_s3(self.bucket, directory, filename, player_info)
 
     def _pull_game_data(self, date):
 
@@ -165,14 +165,14 @@ class NHLScraper():
                 if self.team:
                     if self.team == away or self.team == home:
                         if self.location == "disk":
-                            NHLScraper._write_to_disk(directory, filename, game)
+                            _write_to_disk(directory, filename, game)
                         elif self.location == "s3":
-                            NHLScraper._write_to_s3(self.bucket, directory, filename, game)
+                            _write_to_s3(self.bucket, directory, filename, game)
                 else:
                     if self.location == "disk":
-                        NHLScraper._write_to_disk(directory, filename, game)
+                        _write_to_disk(directory, filename, game)
                     elif self.location == "s3":
-                        NHLScraper._write_to_s3(self.bucket, directory, filename, game)
+                        _write_to_s3(self.bucket, directory, filename, game)
 
     def _pull_player_stat_type(self):
         r = requests.get(self.BASE_URL + "/api/v1/statTypes")
