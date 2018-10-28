@@ -7,7 +7,7 @@ import re
 
 import requests
 
-from nhlscrapy import _generate_years, _flatten_json, _validate_years, _get_start_end_date, _write_to_disk
+from nhlscrapy import _generate_years, _flatten_json, _validate_years, _get_start_end_date, _write_to_disk, _write_to_s3
 
 
 class NHLScraper():
