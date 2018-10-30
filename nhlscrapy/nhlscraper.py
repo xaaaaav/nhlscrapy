@@ -137,8 +137,8 @@ class NHLScraper():
             data = json.loads(r_gamelog.text) 
             player_info.update(data["stats"][0])
 
-            directory = "./player_gamelog_" + self.stat_type + "/" + position + "/" + name + "/"
-            filename = year + ".json.gz"
+            directory = "./player_gamelog_" + self.stat_type + "/" + year + "/" + position + "/"
+            filename = name + ".json.gz"
 
             if self.location == "disk":
                 _write_to_disk(directory, filename, player_info)
@@ -160,7 +160,7 @@ class NHLScraper():
                 away = game["gameData"]["teams"]["away"]["abbreviation"]
                 home = game["gameData"]["teams"]["home"]["abbreviation"]
                 directory = "./game_data/" + date + "/"
-                filename = away + "vs" + home + ".json"
+                filename = away + "vs" + home + ".json.gz"
 
                 if self.teams:
                     if away in self.teams or home in self.teams:
