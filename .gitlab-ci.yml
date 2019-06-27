@@ -8,6 +8,8 @@ job1:
   image: centos:7.6.1810
   only:
     - /^feature-.*$/
+  except:
+    - branches
   script:
     - yum install -y make git
     - make update-github
