@@ -1,8 +1,18 @@
 stages:
+  - dev
   - test
   - deploy
-  
+
 job1:
+  stage: dev
+  image: centos:7.6.1810
+  only:
+    - /^feature-.*$/i
+  script:
+    - yum install -y make git
+    - make update-github
+
+job2:
   stage: test
   image: python:3.6.5
   script:
