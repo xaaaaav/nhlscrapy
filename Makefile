@@ -29,5 +29,5 @@ test:
 	@pytest -s ./nhlscrapy/tests/
 
 update-github:
-	@git remote add github https://github.com/xaaaaav/nhlscrapy.git
+	@git remote add github https://$(USERNAME):$(PASSWORD)@github.com/xaaaaav/nhlscrapy.git
 	@git push github $(CI_COMMIT_REF_NAME):$(CI_COMMIT_REF_NAME)	
