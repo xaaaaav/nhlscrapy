@@ -7,7 +7,7 @@ job1:
   stage: dev
   image: centos:7.6.1810
   only:
-    - /^feature-.*$/i
+    - pushes
   script:
     - yum install -y make git
     - make update-github
