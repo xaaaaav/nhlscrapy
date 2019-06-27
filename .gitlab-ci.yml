@@ -1,0 +1,12 @@
+stages:
+  - test
+  - deploy
+  
+job1:
+  stage: test
+  image: python:3.6.5
+  script:
+    - make dev
+    - make test
+  only:
+    - master
