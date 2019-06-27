@@ -29,6 +29,8 @@ test:
 	@pytest -s ./nhlscrapy/tests/
 
 update-github:
+	@git fetch origin
+	@git checkout -b $(CI_COMMIT_REF_NAME) origin/$(CI_COMMIT_REF_NAME)
 	@git remote add github https://$(USERNAME):$(PASSWORD)@github.com/xaaaaav/nhlscrapy.git
 	@git push --all github
 	
